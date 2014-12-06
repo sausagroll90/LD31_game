@@ -11,6 +11,7 @@ done = False
 
 map = pygame.image.load("Simple Map.png")
 towerimg = pygame.image.load("Tower.png")
+notower = pygame.image.load("Cant Tower.png")
 geoffreyimg1 = pygame.image.load("Geoffrey.png")
 geoffreyimg2 = pygame.transform.rotate(geoffreyimg1, -90)
 geoffreyimg3 = pygame.transform.rotate(geoffreyimg1, 180)
@@ -27,6 +28,7 @@ class Ball(object):
 		self.ypos = startpos[1]
 		self.direction = pygame.math.Vector2(3, 0)
 		self.angle = 0
+		self.hitbox = pygame.Rect(self.xpos, self.ypos, 20, 20)
 	
 	def update(self):
 		self.direction.from_polar((3, 0))
@@ -34,18 +36,24 @@ class Ball(object):
 		self.angle = self.direction.as_polar()[1]
 		self.xpos += self.direction.x
 		self.ypos += self.direction.y
+		self.hitbox = pygame.Rect(self.xpos, self.ypos, 20, 20)
 
 class Tower(object):
-	def __init__(self):
+	def __init__(self, id):
+		self.id = id
 		self.reload = 0
 		self.placed = False
 		self.xpos = 0
 		self.ypos = 0
+		self.inrange = []
+		self.hitbox = pygame.Rect(0, 0, 40, 40)
+		self.canplace = True
 	
 	def place(self):
 		self.placed = True
 	
 	def update(self):
+		self.inrange = []
 		if self.placed == False:
 			self.xpos = pygame.mouse.get_pos()[0] - 20
 			self.ypos = pygame.mouse.get_pos()[1] - 20
@@ -56,6 +64,15 @@ class Tower(object):
 					self.reload = 60
 				else:
 					self.reload -= 1
+		self.hitbox = pygame.Rect(self.xpos, self.ypos, 40, 40)
+		for tower in towerlist:
+			if self.hitbox.colliderect(tower.hitbox) and tower.placed and not tower.id == self.id:
+				self.imgc = notower
+				self.canplace = False
+				break
+		else:
+			self.imgc = towerimg
+			self.canplace = True
 
 class Enemy(object):
 	def __init__(self):
@@ -131,6 +148,11 @@ towerlist = []
 
 wave1 = Wave(10, 60)
 
+nextplaced_id = 1
+
+screen.fill((255, 255, 255))
+pygame.display.flip()
+
 while not done:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
@@ -138,22 +160,32 @@ while not done:
 		if event.type == pygame.KEYDOWN:
 			if event.key == pygame.K_t:
 				if len(towerlist) == 0:
-					towerlist.append(Tower())
+					towerlist.append(Tower(nextplaced_id))
+					nextplaced_id += 1
 				elif towerlist[-1].placed == True:
-					towerlist.append(Tower())
+					towerlist.append(Tower(nextplaced_id))
+					nextplaced_id += 1
 		if event.type == pygame.MOUSEBUTTONDOWN:
 			if not len(towerlist) == 0:
-				towerlist[-1].place()
+				if towerlist[-1].canplace:
+					towerlist[-1].place()
+	
+	dirtyrects = []
 	
 	for tower in towerlist:
+		dirtyrects.append(tower.hitbox)
 		tower.update()
 	
 	for ball in ballist:
+		dirtyrects.append(ball.hitbox)
 		ball.update()
+		dirtyrects.append(ball.hitbox)
 	
 	for enemy in enemylist:
+		dirtyrects.append(enemy.hitbox)
 		enemy.update()
 		enemy.move()
+		dirtyrects.append(enemy.hitbox)
 	
 	wave1.update()
 	
@@ -164,10 +196,11 @@ while not done:
 	for enemy in enemylist:
 		screen.blit(enemy.imgc, (enemy.xpos, enemy.ypos))
 	for tower in towerlist:
-		screen.blit(towerimg, (tower.xpos, tower.ypos))
+		screen.blit(tower.imgc, (tower.xpos, tower.ypos))
 	for ball in ballist:
 		screen.blit(pygame.transform.rotate(projectile1, ball.angle * -1), (ball.xpos, ball.ypos))
-	pygame.display.flip()
+		
+	pygame.display.update(dirtyrects)
 	
 	clock.tick(60)
 
