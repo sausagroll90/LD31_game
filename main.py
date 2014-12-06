@@ -21,11 +21,17 @@ class Tower(object):
 		self.range = range
 		self.countdown = countdown
 		self.type = type
-		self.placed = True
+		self.placed = False
+		self.xpos = 0
+		self.ypos = 0
 	
 	def place(self):
-		self.pos = mouse.get_pos()
 		self.placed = True
+	
+	def check(self):
+		if self.placed == False:
+			self.xpos = pygame.mouse.get_pos()[0] - 20
+			self.ypos = pygame.mouse.get_pos()[1] - 20
 
 class Enemy(object):
 	def __init__(self, type, imgr, imgd, imgl, imgu):
@@ -84,14 +90,20 @@ while not done:
 		if event.type == pygame.KEYDOWN:
 			if event.key == pygame.K_t:
 				towerlist.append(Tower(200, 60, "basic"))
+		if event.type == pygame.MOUSEBUTTONDOWN:
+			towerlist[-1].place()
 				
 	
 	geoffrey.move()
+	for tower in towerlist:
+		tower.check()
 	
 	screen.fill((255, 255, 255))
 	
 	screen.blit(map, (0, 10))
 	screen.blit(geoffrey.imgc, (geoffrey.xpos, geoffrey.ypos))
+	for tower in towerlist:
+		screen.blit(towerimg, (tower.xpos, tower.ypos))
 	pygame.display.flip()
 	
 	clock.tick(60)
