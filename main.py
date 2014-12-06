@@ -18,16 +18,18 @@ geoffreyimg4 = pygame.transform.rotate(geoffreyimg1, 90)
 projectile1 = pygame.image.load("Tower_Ball.png")
 projectile2 = pygame.image.load("Tower_Ball 2.png")
 
+enemylist = []
 ballist = []
+
 class Ball(object):
 	def __init__(self, startpos):
 		self.xpos = startpos[0]
 		self.ypos = startpos[1]
-		self.direction = pygame.math.Vector2(5, 0)
+		self.direction = pygame.math.Vector2(3, 0)
 		self.angle = 0
 	
 	def update(self):
-		self.direction.from_polar((5, 0))
+		self.direction.from_polar((3, 0))
 		self.direction.rotate_ip(((math.atan2(self.ypos - (geoffrey.ypos + 10), self.xpos - (geoffrey.xpos + 10))) / math.pi) * 180 + 180)
 		self.angle = self.direction.as_polar()[1]
 		self.xpos += self.direction.x
@@ -62,6 +64,8 @@ class Enemy(object):
 		self.imgd = imgd
 		self.imgl = imgl
 		self.imgu = imgu
+		self.hitbox = pygame.Rect(0, 0, 20, 20)
+		self.health = 50
 	
 	def startup(self):
 		self.xpos = 10
@@ -99,12 +103,23 @@ class Enemy(object):
 			self.countdown6 -= 1
 			self.ypos += 1
 			self.imgc = self.imgd
+		
+	def update(self):
+		self.hitbox = pygame.Rect(self.xpos, self.ypos, 20, 20)
+		
+		for ball in ballist:
+			if self.hitbox.collidepoint(ball.xpos, ball.ypos):
+				ballist.remove(ball)
+				self.health -= 10
+				
+		if self.health == 0:
+			enemylist.remove(self)
 
 geoffrey = Enemy("geoffrey", geoffreyimg1, geoffreyimg2, geoffreyimg3, geoffreyimg4)
 geoffrey.startup()
 
 towerlist = []
-enemylist = [geoffrey]
+enemylist.append(geoffrey)
 
 while not done:
 	for event in pygame.event.get():
@@ -128,10 +143,15 @@ while not done:
 	for ball in ballist:
 		ball.update()
 	
+	for enemy in enemylist:
+		enemy.update()
+	
 	screen.fill((255, 255, 255))
 	
 	screen.blit(map, (0, 10))
-	screen.blit(geoffrey.imgc, (geoffrey.xpos, geoffrey.ypos))
+	
+	for enemy in enemylist:
+		screen.blit(enemy.imgc, (enemy.xpos, enemy.ypos))
 	for tower in towerlist:
 		screen.blit(towerimg, (tower.xpos, tower.ypos))
 	for ball in ballist:
