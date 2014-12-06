@@ -30,7 +30,7 @@ class Ball(object):
 	
 	def update(self):
 		self.direction.from_polar((3, 0))
-		self.direction.rotate_ip(((math.atan2(self.ypos - (geoffrey.ypos + 10), self.xpos - (geoffrey.xpos + 10))) / math.pi) * 180 + 180)
+		self.direction.rotate_ip(((math.atan2(self.ypos - (enemylist[0].ypos + 10), self.xpos - (enemylist[0].xpos + 10))) / math.pi) * 180 + 180)
 		self.angle = self.direction.as_polar()[1]
 		self.xpos += self.direction.x
 		self.ypos += self.direction.y
@@ -50,7 +50,7 @@ class Tower(object):
 			self.xpos = pygame.mouse.get_pos()[0] - 20
 			self.ypos = pygame.mouse.get_pos()[1] - 20
 		for enemy in enemylist:
-			if math.hypot(math.fabs(self.xpos - enemy.xpos), (self.ypos - enemy.ypos)) < 120:
+			if math.hypot(math.fabs(self.xpos - enemy.xpos), (self.ypos - enemy.ypos)) < 80:
 				if self.reload == 0:
 					ballist.append(Ball([self.xpos + 20, self.ypos + 20]))
 					self.reload = 60
@@ -58,16 +58,14 @@ class Tower(object):
 					self.reload -= 1
 
 class Enemy(object):
-	def __init__(self, type, imgr, imgd, imgl, imgu):
-		self.type = type
-		self.imgr = imgr
-		self.imgd = imgd
-		self.imgl = imgl
-		self.imgu = imgu
+	def __init__(self):
+		self.imgr = geoffreyimg1
+		self.imgd = geoffreyimg2
+		self.imgl = geoffreyimg3
+		self.imgu = geoffreyimg4
+		self.imgc = geoffreyimg1
 		self.hitbox = pygame.Rect(0, 0, 20, 20)
 		self.health = 50
-	
-	def startup(self):
 		self.xpos = 10
 		self.ypos = 16
 		self.countdown1 = 311
@@ -76,7 +74,6 @@ class Enemy(object):
 		self.countdown4 = 504
 		self.countdown5 = 291
 		self.countdown6 = 500
-		self.imgc = self.imgr
 	
 	def move(self):
 		if self.countdown1 != 0:
@@ -115,11 +112,24 @@ class Enemy(object):
 		if self.health == 0:
 			enemylist.remove(self)
 
-geoffrey = Enemy("geoffrey", geoffreyimg1, geoffreyimg2, geoffreyimg3, geoffreyimg4)
-geoffrey.startup()
-
+class Wave(object):
+	def __init__(self, enemyno, delay):
+		self.enemyno = enemyno
+		self.delay = delay
+		self.countdown = 0
+	
+	def update(self):
+		if self.enemyno != 0:
+			if self.countdown == 0:
+				enemylist.append(Enemy())
+				self.countdown = self.delay
+				self.enemyno -= 1
+			else:
+				self.countdown -= 1
+		
 towerlist = []
-enemylist.append(geoffrey)
+
+wave1 = Wave(10, 60)
 
 while not done:
 	for event in pygame.event.get():
@@ -134,8 +144,6 @@ while not done:
 		if event.type == pygame.MOUSEBUTTONDOWN:
 			if not len(towerlist) == 0:
 				towerlist[-1].place()
-				
-	geoffrey.move()
 	
 	for tower in towerlist:
 		tower.update()
@@ -145,6 +153,9 @@ while not done:
 	
 	for enemy in enemylist:
 		enemy.update()
+		enemy.move()
+	
+	wave1.update()
 	
 	screen.fill((255, 255, 255))
 	
