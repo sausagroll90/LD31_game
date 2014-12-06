@@ -42,13 +42,13 @@ class Enemy(object):
 		self.imgu = imgu
 	
 	def startup(self):
-		self.xpos = 10.0
-		self.ypos = 20.0
-		self.countdown1 = 250
-		self.countdown2 = 500
-		self.countdown3 = 250
-		self.countdown4 = 500
-		self.countdown5 = 250
+		self.xpos = 10
+		self.ypos = 16
+		self.countdown1 = 311
+		self.countdown2 = 502
+		self.countdown3 = 275
+		self.countdown4 = 504
+		self.countdown5 = 291
 		self.countdown6 = 500
 		self.imgc = self.imgr
 	
@@ -89,11 +89,14 @@ while not done:
 			done = True
 		if event.type == pygame.KEYDOWN:
 			if event.key == pygame.K_t:
-				towerlist.append(Tower(200, 60, "basic"))
+				if len(towerlist) == 0:
+					towerlist.append(Tower(200, 60, "basic"))
+				elif towerlist[-1].placed == True:
+					towerlist.append(Tower(200, 60, "basic"))
 		if event.type == pygame.MOUSEBUTTONDOWN:
-			towerlist[-1].place()
+			if not len(towerlist) == 0:
+				towerlist[-1].place()
 				
-	
 	geoffrey.move()
 	for tower in towerlist:
 		tower.check()
