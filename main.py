@@ -10,16 +10,30 @@ clock = pygame.time.Clock()
 done = False
 
 map = pygame.image.load("Simple Map.png")
+towerimg = pygame.image.load("Tower.png")
+geoffreyimg1 = pygame.image.load("Geoffrey.png")
+geoffreyimg2 = pygame.transform.rotate(geoffreyimg1, -90)
+geoffreyimg3 = pygame.transform.rotate(geoffreyimg1, 180)
+geoffreyimg4 = pygame.transform.rotate(geoffreyimg1, 90)
 
 class Tower(object):
 	def __init__(self, range, countdown, type):
 		self.range = range
 		self.countdown = countdown
 		self.type = type
+		self.placed = True
+	
+	def place(self):
+		self.pos = mouse.get_pos()
+		self.placed = True
 
 class Enemy(object):
-	def __init__(self, health):
-		self.health = health
+	def __init__(self, type, imgr, imgd, imgl, imgu):
+		self.type = type
+		self.imgr = imgr
+		self.imgd = imgd
+		self.imgl = imgl
+		self.imgu = imgu
 	
 	def startup(self):
 		self.xpos = 10.0
@@ -30,42 +44,54 @@ class Enemy(object):
 		self.countdown4 = 500
 		self.countdown5 = 250
 		self.countdown6 = 500
+		self.imgc = self.imgr
 	
 	def move(self):
 		if self.countdown1 != 0:
 			self.countdown1 -= 1
-			self.xpos += 0.5
-			print(self.countdown1)
+			self.xpos += 1
+			self.imgc = self.imgr
 		elif self.countdown2 != 0:
 			self.countdown2 -= 1
-			self.ypos += 0.5
+			self.ypos += 1
+			self.imgc = self.imgd
 		elif self.countdown3 != 0:
 			self.countdown3 -= 1
-			self.xpos += 0.5
+			self.xpos += 1
+			self.imgc = self.imgr
 		elif self.countdown4 != 0:
 			self.countdown4 -= 1
-			self.ypos -= 0.5
+			self.ypos -= 1
+			self.imgc = self.imgu
 		elif self.countdown5 != 0:
 			self.countdown5 -= 1
-			self.xpos += 0.5
+			self.xpos += 1
+			self.imgc = self.imgr
 		elif self.countdown6 != 0:
 			self.countdown6 -= 1
-			self.ypos += 0.5
+			self.ypos += 1
+			self.imgc = self.imgd
 
-geoffrey = Enemy(100)
+geoffrey = Enemy("geoffrey", geoffreyimg1, geoffreyimg2, geoffreyimg3, geoffreyimg4)
 geoffrey.startup()
+
+towerlist = []
 
 while not done:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
 			done = True
+		if event.type == pygame.KEYDOWN:
+			if event.key == pygame.K_t:
+				towerlist.append(Tower(200, 60, "basic"))
+				
 	
 	geoffrey.move()
 	
 	screen.fill((255, 255, 255))
 	
 	screen.blit(map, (0, 10))
-	
+	screen.blit(geoffrey.imgc, (geoffrey.xpos, geoffrey.ypos))
 	pygame.display.flip()
 	
 	clock.tick(60)
