@@ -4,11 +4,13 @@ import math
 pygame.init()
 size = (1000, 600)
 screen = pygame.display.set_mode(size)
-pygame.display.set_caption("candyfloss tower defense")
+pygame.display.set_caption("Project Candyfloss")
 clock = pygame.time.Clock()
 myfont = pygame.font.SysFont("monospace", 15)
 
 done = False
+lives = 10
+money = 200
 
 map = pygame.image.load("Map.png")
 towerimg = pygame.image.load("Tower.png")
@@ -24,6 +26,9 @@ shoot = pygame.mixer.Sound("Pew.wav")
 place = pygame.mixer.Sound("Place.wav")
 hit = pygame.mixer.Sound("Hit.wav")
 death = pygame.mixer.Sound("Ded.wav")
+
+death.set_volume(0.5)
+shoot.set_volume(0.6)
 
 enemylist = []
 ballist = []
@@ -105,14 +110,14 @@ class Tower(object):
 				self.canplace = True
 
 class Enemy(object):
-	def __init__(self):
+	def __init__(self, health):
 		self.imgr = geoffreyimg1
 		self.imgd = geoffreyimg2
 		self.imgl = geoffreyimg3
 		self.imgu = geoffreyimg4
 		self.imgc = geoffreyimg1
 		self.hitbox = pygame.Rect(0, 0, 20, 20)
-		self.health = 30
+		self.health = health
 		self.xpos = 10
 		self.ypos = 6
 		self.countdown1 = 311
@@ -147,6 +152,10 @@ class Enemy(object):
 			self.countdown6 -= 1
 			self.ypos += 1
 			self.imgc = self.imgd
+		else:
+			global lives
+			lives -= 1
+			enemylist.remove(self)
 		
 	def update(self):
 		self.hitbox = pygame.Rect(self.xpos, self.ypos, 20, 20)
@@ -162,31 +171,41 @@ class Enemy(object):
 			death.play()
 
 class Wave(object):
-	def __init__(self, enemyno, delay):
+	def __init__(self, enemyno, delay, health):
 		self.enemyno = enemyno
 		self.delay = delay
 		self.countdown = 0
+		self.done = False
+		self.started = False
+		self.health = health
 	
 	def update(self):
+		self.started = True
 		if self.enemyno != 0:
 			if self.countdown == 0:
-				enemylist.append(Enemy())
+				enemylist.append(Enemy(self.health))
 				self.countdown = self.delay
 				self.enemyno -= 1
 			else:
 				self.countdown -= 1
-		
+		elif len(enemylist) == 0:
+			self.done = True
+			global money
+			money += 100
+
 towerlist = []
 
-wave1 = Wave(10, 60)
+wave1 = Wave(6, 60, 30)
+wave2 = Wave(12, 50, 30)
+wave3 = Wave(16, 40, 30)
+wave4 = Wave(20, 40, 40)
+wave5 = Wave(20, 35, 50)
 
 nextplaced_id = 1
 
 screen.fill((255, 255, 255))
 screen.blit(map, (0, 0))
 pygame.display.flip()
-
-money = 300
 
 while not done:
 	for event in pygame.event.get():
@@ -204,11 +223,11 @@ while not done:
 					money -= 100
 		if event.type == pygame.MOUSEBUTTONDOWN:
 			if not len(towerlist) == 0:
-				if towerlist[-1].canplace:
+				if towerlist[-1].canplace and not towerlist[-1].placed:
 					towerlist[-1].place()
 					place.play()
 	
-	dirtyrects = []
+	dirtyrects = [pygame.Rect(15, 100, 100, 100)]
 	
 	for tower in towerlist:
 		dirtyrects.append(tower.hitbox)
@@ -226,7 +245,25 @@ while not done:
 		enemy.move()
 		dirtyrects.append(enemy.hitbox)
 	
-	wave1.update()
+	if wave1.done == False:
+		wave1.update()
+		currentwave = "1"
+	elif wave2.done == False:
+		wave2.update()
+		currentwave = "2"
+	elif wave3.done == False:
+		wave3.update()
+		currentwave = "3"
+	elif wave4.done == False:
+		wave4.update()
+		currentwave = "4"
+	elif wave5.done == False:
+		wave5.update()
+		currentwave = "5"
+	
+	mrd = myfont.render("Money: " + str(money), 1, (0, 0, 0))
+	lrd = myfont.render("Lives: " + str(lives), 1, (0, 0, 0))
+	wrd = myfont.render("Wave: " + currentwave, 1, (0, 0, 0))
 		
 	screen.fill((255, 255, 255))
 	
@@ -238,6 +275,9 @@ while not done:
 		screen.blit(tower.imgc, (tower.xpos, tower.ypos))
 	for ball in ballist:
 		screen.blit(pygame.transform.rotate(projectile1, ball.angle * -1), (ball.xpos, ball.ypos))
+	screen.blit(mrd, (15, 100))
+	screen.blit(lrd, (15, 120))
+	screen.blit(wrd, (15, 140))
 	
 	pygame.display.update(dirtyrects)
 	
