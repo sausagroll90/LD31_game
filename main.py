@@ -21,6 +21,8 @@ geoffreyimg3 = pygame.transform.rotate(geoffreyimg1, 180)
 geoffreyimg4 = pygame.transform.rotate(geoffreyimg1, 90)
 projectile1 = pygame.image.load("Tower_Ball.png")
 projectile2 = pygame.image.load("Tower_Ball 2.png")
+gameover = pygame.image.load("Lose.png")
+winimg = pygame.image.load("Win.png")
 
 shoot = pygame.mixer.Sound("Pew.wav")
 place = pygame.mixer.Sound("Place.wav")
@@ -195,17 +197,25 @@ class Wave(object):
 
 towerlist = []
 
-wave1 = Wave(6, 60, 30)
-wave2 = Wave(12, 50, 30)
-wave3 = Wave(16, 40, 30)
-wave4 = Wave(20, 40, 40)
-wave5 = Wave(20, 35, 50)
+wave1 = Wave(4, 60, 30)
+wave2 = Wave(9, 50, 30)
+wave3 = Wave(12, 40, 30)
+wave4 = Wave(9, 42, 40)
+wave5 = Wave(12, 45, 50)
 
 nextplaced_id = 1
 
 screen.fill((255, 255, 255))
 screen.blit(map, (0, 0))
 pygame.display.flip()
+
+instcd = 300
+wavecd = 300
+currentwave = "1"
+win = False
+
+instructions1 = myfont.render("Press the \"t\" key to create a tower.", 1, (0, 0, 0))
+instructions2 = myfont.render("Click to place the tower.", 1, (0, 0, 0))
 
 while not done:
 	for event in pygame.event.get():
@@ -227,7 +237,7 @@ while not done:
 					towerlist[-1].place()
 					place.play()
 	
-	dirtyrects = [pygame.Rect(15, 100, 100, 100)]
+	dirtyrects = [pygame.Rect(15, 100, 100, 100), pygame.Rect(350, 300, 330, 70)]
 	
 	for tower in towerlist:
 		dirtyrects.append(tower.hitbox)
@@ -245,21 +255,27 @@ while not done:
 		enemy.move()
 		dirtyrects.append(enemy.hitbox)
 	
-	if wave1.done == False:
-		wave1.update()
-		currentwave = "1"
-	elif wave2.done == False:
-		wave2.update()
-		currentwave = "2"
-	elif wave3.done == False:
-		wave3.update()
-		currentwave = "3"
-	elif wave4.done == False:
-		wave4.update()
-		currentwave = "4"
-	elif wave5.done == False:
-		wave5.update()
-		currentwave = "5"
+	
+	if wavecd == 0:
+		if wave1.done == False:
+			wave1.update()
+			currentwave = "1"
+		elif wave2.done == False:
+			wave2.update()
+			currentwave = "2"
+		elif wave3.done == False:
+			wave3.update()
+			currentwave = "3"
+		elif wave4.done == False:
+			wave4.update()
+			currentwave = "4"
+		elif wave5.done == False:
+			wave5.update()
+			currentwave = "5"
+		else:
+			win = True
+	elif wavecd > 0:
+		wavecd -= 1
 	
 	mrd = myfont.render("Money: " + str(money), 1, (0, 0, 0))
 	lrd = myfont.render("Lives: " + str(lives), 1, (0, 0, 0))
@@ -278,9 +294,19 @@ while not done:
 	screen.blit(mrd, (15, 100))
 	screen.blit(lrd, (15, 120))
 	screen.blit(wrd, (15, 140))
-	
-	pygame.display.update(dirtyrects)
-	
+	if instcd > 0:
+		screen.blit(instructions1, (350, 300))
+		screen.blit(instructions2, (350, 320))
+		instcd -= 1
+	if win == True:
+		screen.blit(winimg, (0, 0))
+		pygame.display.flip()
+	if lives == 0:
+		screen.blit(gameover, (0, 0))
+		pygame.display.flip()
+	if win == False and lives > 0:
+		pygame.display.update(dirtyrects)
+		
 	clock.tick(60)
 
 pygame.quit()
