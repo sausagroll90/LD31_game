@@ -55,6 +55,8 @@ class Ball(object):
 		self.direction = pygame.math.Vector2(3, 0)
 		self.angle = 0
 		self.hitbox = pygame.Rect(self.xpos, self.ypos, 20, 20)
+		self.imgc = projectile1
+		self.imgcd = 5
 	
 	def update(self):
 		self.direction.from_polar((3, 0))
@@ -64,6 +66,14 @@ class Ball(object):
 		self.xpos += self.direction.x
 		self.ypos += self.direction.y
 		self.hitbox = pygame.Rect(self.xpos, self.ypos, 20, 20)
+		if self.imgcd == 0:
+			if self.imgc == projectile1:
+				self.imgc = projectile2
+				self.imgcd = 5
+			else:
+				self.imgc = projectile1
+				self.imgcd = 5
+		self.imgcd -= 1
 
 class Tower(object):
 	def __init__(self, id):
@@ -290,7 +300,7 @@ while not done:
 	for tower in towerlist:
 		screen.blit(tower.imgc, (tower.xpos, tower.ypos))
 	for ball in ballist:
-		screen.blit(pygame.transform.rotate(projectile1, ball.angle * -1), (ball.xpos, ball.ypos))
+		screen.blit(pygame.transform.rotate(ball.imgc, ball.angle * -1), (ball.xpos, ball.ypos))
 	screen.blit(mrd, (15, 100))
 	screen.blit(lrd, (15, 120))
 	screen.blit(wrd, (15, 140))
